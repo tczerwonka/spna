@@ -29,7 +29,7 @@
 // Prior to November 2014:
 //  some buttons, not much else
 /////////////////////////////////////////////////////////////////////////////////////////
-// $Id: spna_0_3.ino,v 1.2 2015/03/12 20:34:11 timc Exp timc $
+// https://github.com/tczerwonka/spna
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -94,6 +94,17 @@ int current_page = 0;
 #define GIMBALX A4
 #define GIMBALY A3
 #define GIMBALSW A2
+//these don't center out at 512 like you'd hope
+#define GIMBALXCENTER 850
+#define GIMBALYCENTER 820
+
+int cursor_xpos = 0;
+int cursor_ypos = 0;
+
+typedef struct {
+  int x;
+  int y;
+} cursor_t;
 
 #define CHAR 10   //Number of characters per LCD line
 #define PAGEPOS 4  //which position on the menu page
@@ -336,8 +347,9 @@ double drawInputScreen(int page)
 
   //supposedly we're at OK here -- return a valid number
   //step through array
-  for (int index = 0; index < 8; index++) {
-    if (frequency[index] < 10 ) {
+  //bitching about a -Waggressive-loop-optimization error here -- changed from 10 to 7...wtf
+  for (int index = 0; index < 7; index++) {
+    if (frequency[index] < 7 ) {
       Serial.print("index: ");Serial.println(index);
       Serial.print("  freq[index]: ");Serial.println(frequency[index],DEC);
       Serial.print("  d_fvalue before: ");Serial.println(d_fvalue);
@@ -349,27 +361,6 @@ double drawInputScreen(int page)
 
 }
 
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-//decode the output of the gimbal
-//input: nothing I guess
-//return: something useful someday
-/////////////////////////////////////////////////////////////////////////////////////////
-int decodeGimbal()
-{
-  
-    int gimx, gimy, gimsw;
-  
-    gimx = analogRead(GIMBALX);
-    gimy = analogRead(GIMBALY);
-    gimsw = digitalRead(GIMBALSW);
-    
-    Serial.print("x: ");Serial.println(gimx);
-    Serial.print("y: ");Serial.println(gimy);
-    Serial.print("b: ");Serial.println(gimsw);
-  
-}
 
 
 
@@ -461,63 +452,6 @@ void updateStr(int val)
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// version / startup screen
-/////////////////////////////////////////////////////////////////////////////////////////
-void version()
-{
-  //clear the screen
-  myGLCD.clrScr();
-
-  myGLCD.setFont(SmallFont);
-  myGLCD.setColor(255, 0, 0);
-  myGLCD.fillRect(0, 0, 319, 13);
-  myGLCD.setColor(64, 64, 64);
-  myGLCD.fillRect(0, 226, 319, 239);
-  myGLCD.setColor(255, 255, 255);
-  myGLCD.setBackColor(255, 0, 0);
-  myGLCD.print((char *)"* SPNA *", CENTER, 1);
-  myGLCD.setBackColor(64, 64, 64);
-  myGLCD.setColor(255,255,0);
-  myGLCD.print((char *)"<http://www.cs.wisc.edu/~timc/e/>", CENTER, 227);
-
-  myGLCD.setColor(0, 0, 255);
-  myGLCD.drawRect(0, 14, 319, 225);
-
-  myGLCD.setFont(arial_bold);
-  myGLCD.setColor(0,255,0); //rgb
-  myGLCD.fillRoundRect(0, 0, 320,240);
-  myGLCD.print((char *)"Single-port", CENTER, 35);
-  myGLCD.print((char *)"Network Analyzer", CENTER, 55);
-
-  myGLCD.print((char *)"Tim Czerwonka", CENTER, 100);
-  myGLCD.print((char *)"WO9U", CENTER, 125);
-
-  myGLCD.print((char *)"2018", CENTER, 180);
-  myGLCD.print((char *)"version 0.31", CENTER, 200);
-  
-  //1
-  analogWrite(9,50);
-  delay(1000);
-  //2
-  analogWrite(9,110);
-  delay(1000);
-  //3
-  analogWrite(9,160);
-  delay(1000);
-  //4
-  analogWrite(9,210);
-  delay(1000);
-  //5
-  analogWrite(9,255);
-  delay(1000);
-  //back to zero
-  analogWrite(9,0);
-}
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
 // required function
 /////////////////////////////////////////////////////////////////////////////////////////
 void setup()
@@ -559,8 +493,8 @@ void loop()
 {
   int retval, touchpad_x, touchpad_y;
 
-  while (true)
-  {
+  draw_cursor();
+  
     if (myTouch.dataAvailable())
     {
       retval = 0;
@@ -673,178 +607,7 @@ void loop()
       Serial.print(retval);
 
     } //if data available
-  } //while true
 } //void loop
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-//calc_swr
-//  Calculate the system SWR
-/////////////////////////////////////////////////////////////////////////////////////////
-float calc_swr(int ADCphase, int ADCmagnitude) {
-  //take the phase and magnitude adc 
-  //values as arguments
-  float return_loss;
-  float phase;
-  float swr;
-  float tmpa, tmpb;
-
-  //calculate phase
-  //Serial.print("ADCphase: ");Serial.println(ADCphase);
-  phase = ((ADCphase / 1024.0) * 180.0 ) - 90.0;
-  //Serial.print("phase: ");Serial.println(phase);
-
-  //calculate magnitude
-  return_loss = (ADCmagnitude / 1024.0) * 60.0;
-  return_loss = return_loss - 30.0;
-  //Serial.print("ADCmagnitude: ");Serial.println(ADCmagnitude);
-  //Serial.print("return loss: ");Serial.println(return_loss);
-
-  swr = return_loss / 20.0;
-  swr = pow(10, swr);
-  swr = 1.0 / swr;
-  tmpa = 1.0 + swr;
-  tmpb = 1.0 - swr;
-  swr = abs(tmpa / tmpb);
-
-  Serial.print("swr: ");
-  Serial.println(swr);
-  return swr;
-} //end calc_swr
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-//drawSWRGraph 
-// -- just draw the swr graph background
-/////////////////////////////////////////////////////////////////////////////////////////
-void drawSWRGraph () {
-
-  int swrscale;
-  int tmp_div;
-  int tmp_count;
-  int swr_printed_value = 0;
-  int swr_increment;
-
-  //set number of divisions
-  int divisions = 4;
-
-
-  swrscale = ymax / divisions;
-  swr_increment = SWR_MAX / divisions;
-
-  myGLCD.clrScr();
-  myGLCD.setColor(VGA_BLUE);
-  //  myGLCD.drawRect(x1,y1,x2,y2)
-  //full screen rectangle
-  myGLCD.drawRect(0,0,xmax,ymax);
-
-  //iterate
-  for (tmp_count = ymax; tmp_count > 0; tmp_count = tmp_count - swrscale) {
-    myGLCD.drawLine(0,tmp_count,xmax,tmp_count);
-    myGLCD.printNumI(swr_printed_value, 0, tmp_count-20);
-    swr_printed_value = swr_printed_value + swr_increment;
-  } // for
-
-} //drawSWRGraph
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-//SimpleSweep
-//  I just need a function to do a simple frequency sweep
-/////////////////////////////////////////////////////////////////////////////////////////
-void SimpleSweep (int whatever) {
-  double Fstart = 8000000;
-  double Fstop = 30000000;
-  double Fstep = 20000;
-  double freq;
-  double power;
-  double phase;
-  double x = 0;
-  double y;
-  double xstep;
-  double steptotal;
-  float swr;
-  float swr_first_min = 999;
-  float freq_first_min;
-  int meterval;
-
-  //Serial.println("simple sweep");
-  //myGLCD.clrScr();
-  drawSWRGraph();
-  Serial.print("xmax:");
-  Serial.println(xmax);
-  Serial.print("ymax:");
-  Serial.println(ymax);
-
-  myGLCD.setColor(VGA_LIME);
-
-
-  //determine the amount to increment X on each frequency step
-  steptotal = (Fstop - Fstart) / Fstep;
-  xstep = xmax / steptotal;
-  Serial.print("steptotal: ");
-  Serial.println(steptotal);
-  Serial.print("xstep: ");
-  Serial.println(xstep);  
-
-
-  // sweep form 14MHz to 14.350MHz
-  for (freq = Fstart; freq < Fstop; freq += Fstep) {
-
-    dds.setFrequency(freq);  
-    power = analogRead(A0);
-    phase = analogRead(A1);
-
-    //scale y
-    //y = (phase * ymax) / 1024;    
-    //myGLCD.setColor(VGA_SILVER);
-    //myGLCD.drawPixel(x,y);
-    //Serial.print("power: "); Serial.print(power); Serial.print(" phase: "); Serial.print(phase); 
-    //Serial.print(" y scale: ");Serial.println(y);
-
-    //y = (power * ymax) / 1024;    
-    //myGLCD.setColor(VGA_RED);
-    //myGLCD.drawPixel(x,y);
-    //Serial.print("power: "); Serial.print(power); Serial.print(" phase: "); Serial.print(phase); 
-    //Serial.print(" y scale: ");Serial.println(y);
-
-    Serial.print(" freq: ");
-    Serial.println(freq);
-    swr = calc_swr(phase,power);
-    //origin is upper left so y is essentially inverted from what i want
-    y = ymax - ((swr * ymax) / 10); 
-    //check for minimum
-    if (swr < swr_first_min) {
-      swr_first_min = swr;
-      freq_first_min = freq;
-    }
-
-    //how about some meter action
-    //max swr of 5 -- so 50 scaling factor and 5 max
-    meterval = (5 * swr);
-    if (meterval > 255) meterval=255;
-    analogWrite(9,meterval);
-
-
-    myGLCD.setColor(VGA_LIME);
-    myGLCD.drawPixel(x,y);
-
-    x+=xstep;
-  } //for
-  //dds.setFrequency(14100000);  
-
-  //print the frequency with the lowest swr
-  //scale to mhz
-  freq_first_min = freq_first_min / 1000000.0;
-  myGLCD.printNumF(freq_first_min, 3, 100, 100);
-  delay(10000);
-  //set meter back to zero
-  analogWrite(9,0);
-} //end SimpleSweep
-
 
 
 
