@@ -4,6 +4,9 @@
 // A first pass at a single port network/antenna analyzer
 /////////////////////////////////////////////////////////////////////////////////////////
 // Tim Czerwonka WO9U <tczerwonka@gmail.com>
+// 2jan2017
+//  Picking up on the project again -- mostly having to fix shit that used to compile
+//  with older versions of the environment
 // 23jul2016
 //  adding a joystick (gimbal) because the touchscreen suuuucks
 // 10jul2016 v0.3
@@ -198,24 +201,24 @@ double drawInputScreen(int page)
   myGLCD.clrScr();
 
   myGLCD.setColor(VGA_WHITE);
-  b1 = myButtons.addButton(0, 60, 63, 60, "1");
-  b2 = myButtons.addButton(64, 60, 63, 60, "2");
-  b3 = myButtons.addButton(128, 60, 63, 60, "3");
-  b4 = myButtons.addButton(192, 60, 63, 60, "4");
-  b5 = myButtons.addButton(256, 60, 63, 60, "5");
-  b6 = myButtons.addButton(0, 121, 63, 60, "6");
-  b7 = myButtons.addButton(64, 121, 63, 60, "7");
-  b8 = myButtons.addButton(128, 121, 63, 60, "8");
-  b9 = myButtons.addButton(192, 121, 63, 60, "9");
-  b0 = myButtons.addButton(256, 121, 63, 60, "0");
+  b1 = myButtons.addButton(0, 60, 63, 60, (char *)"1");
+  b2 = myButtons.addButton(64, 60, 63, 60, (char *)"2");
+  b3 = myButtons.addButton(128, 60, 63, 60, (char *)"3");
+  b4 = myButtons.addButton(192, 60, 63, 60, (char *)"4");
+  b5 = myButtons.addButton(256, 60, 63, 60, (char *)"5");
+  b6 = myButtons.addButton(0, 121, 63, 60, (char *)"6");
+  b7 = myButtons.addButton(64, 121, 63, 60, (char *)"7");
+  b8 = myButtons.addButton(128, 121, 63, 60, (char *)"8");
+  b9 = myButtons.addButton(192, 121, 63, 60, (char *)"9");
+  b0 = myButtons.addButton(256, 121, 63, 60, (char *)"0");
   
-  bBACK = myButtons.addButton(256, 0, 63, 59, "<-");
+  bBACK = myButtons.addButton(256, 0, 63, 59, (char *)"<-");
 
-  bDOT = myButtons.addButton(0, 182, 63, 57, ".");
+  bDOT = myButtons.addButton(0, 182, 63, 57, (char *)".");
   myGLCD.setColor(VGA_LIME);
-  bOK = myButtons.addButton(64, 182, 127, 57, "OK");
+  bOK = myButtons.addButton(64, 182, 127, 57, (char *)"OK");
   myGLCD.setColor(VGA_RED);
-  bCANCEL = myButtons.addButton(192, 182, 127, 57, "CANCEL");
+  bCANCEL = myButtons.addButton(192, 182, 127, 57, (char *)"CANCEL");
 
   //but1 = myButtons.addButton( 10,  20, 300,  30, "Button 1");
   //but2 = myButtons.addButton( 10,  60, 300,  30, "Button 2");
@@ -293,7 +296,7 @@ double drawInputScreen(int page)
       if (frequency[frq_index] == 11) 
       {
         myGLCD.setFont(SevenSegNumFontPlus);
-        myGLCD.print(":",frq_index*30,5);
+        myGLCD.print((char *)":",frq_index*30,5);
         myGLCD.setFont(arial_bold);
         frq_index++;
       } //if
@@ -444,13 +447,13 @@ void updateStr(int val)
   else
   {
     myGLCD.setColor(255, 0, 0);
-    myGLCD.print("BUFFER FULL!", CENTER, 192);
+    myGLCD.print((char *)"BUFFER FULL!", CENTER, 192);
     delay(500);
-    myGLCD.print("            ", CENTER, 192);
+    myGLCD.print((char *)"            ", CENTER, 192);
     delay(500);
-    myGLCD.print("BUFFER FULL!", CENTER, 192);
+    myGLCD.print((char *)"BUFFER FULL!", CENTER, 192);
     delay(500);
-    myGLCD.print("            ", CENTER, 192);
+    myGLCD.print((char *)"            ", CENTER, 192);
     myGLCD.setColor(0, 255, 0);
   }
 }
@@ -472,10 +475,10 @@ void version()
   myGLCD.fillRect(0, 226, 319, 239);
   myGLCD.setColor(255, 255, 255);
   myGLCD.setBackColor(255, 0, 0);
-  myGLCD.print("* SPNA *", CENTER, 1);
+  myGLCD.print((char *)"* SPNA *", CENTER, 1);
   myGLCD.setBackColor(64, 64, 64);
   myGLCD.setColor(255,255,0);
-  myGLCD.print("<http://www.cs.wisc.edu/~timc/e/>", CENTER, 227);
+  myGLCD.print((char *)"<http://www.cs.wisc.edu/~timc/e/>", CENTER, 227);
 
   myGLCD.setColor(0, 0, 255);
   myGLCD.drawRect(0, 14, 319, 225);
@@ -483,14 +486,14 @@ void version()
   myGLCD.setFont(arial_bold);
   myGLCD.setColor(0,255,0); //rgb
   myGLCD.fillRoundRect(0, 0, 320,240);
-  myGLCD.print("Single-port", CENTER, 35);
-  myGLCD.print("Network Analyzer", CENTER, 55);
+  myGLCD.print((char *)"Single-port", CENTER, 35);
+  myGLCD.print((char *)"Network Analyzer", CENTER, 55);
 
-  myGLCD.print("Tim Czerwonka", CENTER, 100);
-  myGLCD.print("WO9U", CENTER, 125);
+  myGLCD.print((char *)"Tim Czerwonka", CENTER, 100);
+  myGLCD.print((char *)"WO9U", CENTER, 125);
 
-  myGLCD.print("2016", CENTER, 180);
-  myGLCD.print("version 0.30", CENTER, 200);
+  myGLCD.print((char *)"2018", CENTER, 180);
+  myGLCD.print((char *)"version 0.31", CENTER, 200);
   
   //1
   analogWrite(9,50);
