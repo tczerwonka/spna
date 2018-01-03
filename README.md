@@ -19,3 +19,10 @@ UTFT_Buttons: http://www.rinkydinkelectronics.com/library.php?id=61
 
 DDS: https://github.com/m0xpd/DDS
 
+##
+Tue Jan  2 23:33:32 CST 2018
+
+Picking up project after a long hiatus.  Lots of cleanup as the 
+compiler gets pickier.  Now have a mouse cursor on the screen,
+need to action that to find screen color select/replace/update
+cycle and actually 'click' a button.
