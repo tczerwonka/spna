@@ -33,10 +33,10 @@
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
-#include <UTFT.h>
-#include <URTouch.h>
-#include <DDS.h>
-#include <UTFT_Buttons.h>
+#include <UTFT.h>    // http://www.rinkydinkelectronics.com/library.php?id=51
+#include <URTouch.h> // http://www.rinkydinkelectronics.com/library.php?id=92
+#include <DDS.h>     // https://github.com/m0xpd/DDS
+#include <UTFT_Buttons.h> // http://www.rinkydinkelectronics.com/library.php?id=61
 
 // Initialize display
 // ------------------
